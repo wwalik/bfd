@@ -1,3 +1,4 @@
+.cache
 bf
 build/*
 compile_commands.json
