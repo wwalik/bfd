@@ -12,8 +12,11 @@ OBJS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRCS))
 $(TARGET): $(OBJS)
 	$(CC) -o $(TARGET) $^
 
-$(BUILD_DIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 clean:
 	rm $(TARGET) ;\
