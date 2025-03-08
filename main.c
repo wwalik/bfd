@@ -1,13 +1,12 @@
-#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 
 #include "instruction_set.h"
 #include "interpreter_context.h"
 #include "get_line.cc"
 
+#define PROMPT ">>"
 #define DELIM " \n"
 int
 main(int argc, char *argv[])
@@ -47,14 +46,7 @@ main(int argc, char *argv[])
 		}
 		if (strcmp(command, "memory") == 0)
 		{
-			// TODO: Show where the pointer is
-			for (int i = 0; i < inter->tape_size; i++)
-			{
-				printf("%02x ", inter->tape[i]);
-				if ((i+1) % 16 == 0)
-					putchar('\n');
-			}
-			putchar('\n');
+			show_inter_ctx_memory(inter);
 		}
 		if (strcmp(command, "step") == 0)
 		{
@@ -72,7 +64,19 @@ main(int argc, char *argv[])
 				printf("Please load an instruction set first\n");
 				continue;
 			}
-			while (step_inter_ctx(inter, instr) == 0);
+			INTER_CTX_STATE inter_state;
+			while ( (inter_state = step_inter_ctx(inter, instr)) == INTER_SUCCESS);
+			switch (inter_state)
+			{
+				case INTER_BREAKPOINT:
+					printf("Hit a breakpoint at character %ld\n", instr->index);
+					instr->index++;
+					break;
+				case INTER_END_OF_INSTRUCTIONS:
+					break;
+				default:
+					printf("how did this happen?\n unhandled interpreter state in run loop\n");
+			}
 		}
 		if (strcmp(command, "reset") == 0)
 		{
