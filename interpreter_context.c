@@ -26,18 +26,6 @@ create_inter_ctx(size_t tape_size)
 
 	return inter;
 }
-static const char valid_brainfuck_characters[] =
-{
-'<',
-'>',
-'+',
-'-',
-'.',
-',',
-'[',
-']',
-'#',
-};
 INTER_CTX_STATE
 step_inter_ctx(inter_ctx *inter, instr_set *instr)
 {
@@ -69,7 +57,7 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 			printf("(%ld)>", inter->tape_i);
 			int ch = getchar();
 			if (ch == EOF) // Exit if ctrl+d
-				return -1; // TODO: fix this
+				exit(EXIT_SUCCESS); // TODO: fix this
 			inter->tape[inter->tape_i] = ch;
 
 			int garbage;
@@ -108,33 +96,24 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 			{
 				// TODO: handle this
 				printf("you fucked up\n");
+				printf("Fix your brackets\n");
 				exit(EXIT_FAILURE);
 				return INTER_ERROR;
 			}
 
 			// Pop the stack
 			instr->index = inter->lstack[--inter->lstack_i];
-			return 0;
+			return INTER_SUCCESS;
 		case '#':
 			return INTER_BREAKPOINT;
-			break;
-		default:
-			while (instr->index < instr->filesize)
-			{
-				char ch = instr->text[instr->index];
-				for (int i = 0; i < sizeof(valid_brainfuck_characters)/sizeof(valid_brainfuck_characters[0]); i++)
-					if (ch == valid_brainfuck_characters[i])
-						return INTER_SUCCESS;
-
-				instr->index++;
-			}
 			break;
 	}
 
 	instr->index++;
+	seek_valid_bf_character(instr);
+
 	if (instr->index >= instr->filesize) // TODO: Test this
 		return INTER_END_OF_INSTRUCTIONS; // TODO: handle end of instructions e.g: detect loop errors
-
 	return INTER_SUCCESS;
 }
 void show_inter_ctx_memory(inter_ctx *inter)

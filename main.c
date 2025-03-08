@@ -59,6 +59,7 @@ main(int argc, char *argv[])
 				case INTER_BREAKPOINT:
 					printf("Hit a breakpoint at character %ld\n", instr->index);
 					instr->index++;
+					seek_valid_bf_character(instr);
 					break;
 				case INTER_END_OF_INSTRUCTIONS:
 					break;

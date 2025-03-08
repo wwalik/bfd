@@ -40,6 +40,44 @@ create_instr_set(const char *filename)
 	fclose(fp);
 	return instr;
 }
+// enum
+// {
+// 	LEFT_ARROW,
+// 	RIGHT_ARROW,
+// 	PLUS,
+// 	MINUS,
+// 	DOT,
+// 	COMMA,
+// 	OPEN_BRACKET,
+// 	CLOSED_BRACKET,
+// 	HASHTAG,
+// 	N_VALID_BRAINFUCK_CHARACTERS
+// };
+static const char valid_brainfuck_characters[] =
+{
+'<',
+'>',
+'+',
+'-',
+'.',
+',',
+'[',
+']',
+'#',
+};
+void
+seek_valid_bf_character(instr_set *instr)
+{
+	while (instr->index < instr->filesize)
+	{
+		char ch = instr->text[instr->index];
+		for (int i = 0; i < sizeof(valid_brainfuck_characters)/sizeof(valid_brainfuck_characters[0]); i++)
+			if (ch == valid_brainfuck_characters[i])
+				return;
+
+		instr->index++;
+	}
+}
 void show_instruction_set(instr_set *instr)
 {
 	if (instr == NULL)
