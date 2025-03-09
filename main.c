@@ -4,7 +4,7 @@
 
 #include "instruction_set.h"
 #include "interpreter_context.h"
-#include "get_line.cc"
+#include "get_line.inc"
 
 #define PROMPT ">>"
 #define LINE_SIZE_LIMIT 256
@@ -14,6 +14,13 @@ main(int argc, char *argv[])
 {
 	inter_ctx *inter = create_inter_ctx(256);
 	instr_set *instr = NULL;
+	if (argc == 2)
+	{
+		instr = create_instr_set(argv[1]);
+	} else if (argc > 2)
+	{
+		printf("%s: Too many arguments\n", argv[0]);
+	}
 
 	char *line = malloc(LINE_SIZE_LIMIT);
 	size_t bytes_read;

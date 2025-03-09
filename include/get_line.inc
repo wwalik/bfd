@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+static
 size_t
 get_line(char *line_buffer, size_t limit, FILE *stream)
 {
