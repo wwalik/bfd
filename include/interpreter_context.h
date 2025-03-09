@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -18,13 +19,22 @@ typedef struct
 	TAPE_TYPE tape[];
 } inter_ctx;
 
+typedef enum 
+{
+	INTER_NO_INSTRUCTION_SET,
+	INTER_LOOP_LIMIT_REACHED,
+	INTER_MISSING_BRACKET // TODO: find a better name
+} INTER_ERROR_TYPE;
+extern INTER_ERROR_TYPE interpreter_error;
+extern const char *interpreter_error_str[];
+
 inter_ctx *create_inter_ctx(size_t tape_size);
 typedef enum 
 {
-	INTER_SUCCESS,
-	INTER_BREAKPOINT,
-	INTER_ERROR, // consider using a global variable to give more details about the error errno.h style?
-	INTER_END_OF_INSTRUCTIONS = -1
+	INTER_STATE_SUCCESS,
+	INTER_STATE_BREAKPOINT,
+	INTER_STATE_ERROR,
+	INTER_STATE_EOI = -1 // End of instructions
 } INTER_CTX_STATE;
 INTER_CTX_STATE step_inter_ctx(inter_ctx *inter, instr_set *instr);
 void show_inter_ctx_memory(inter_ctx *inter);

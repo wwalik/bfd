@@ -6,6 +6,14 @@
 #include "interpreter_context.h"
 #include "get_line.inc"
 
+static inline
+void
+handle_inter_ctx_error()
+{
+	const char *msg = interpreter_error_str[interpreter_error];
+	printf("Interpreter error: %s\n", msg);
+}
+
 #define PROMPT ">>"
 #define LINE_SIZE_LIMIT 256
 #define DELIM " \n"
@@ -60,15 +68,18 @@ main(int argc, char *argv[])
 		if (strcmp(command, "run") == 0)
 		{
 			INTER_CTX_STATE inter_state;
-			while ( (inter_state = step_inter_ctx(inter, instr)) == INTER_SUCCESS);
+			while ( (inter_state = step_inter_ctx(inter, instr)) == INTER_STATE_SUCCESS);
 			switch (inter_state)
 			{
-				case INTER_BREAKPOINT:
+				case INTER_STATE_BREAKPOINT:
 					printf("Hit a breakpoint at character %ld\n", instr->index);
 					instr->index++;
 					seek_valid_bf_character(instr);
 					break;
-				case INTER_END_OF_INSTRUCTIONS:
+				case INTER_STATE_ERROR:
+					handle_inter_ctx_error();
+					break;
+				case INTER_STATE_EOI:
 					break;
 				default:
 					printf("how did this happen?\n unhandled interpreter state in run loop\n");

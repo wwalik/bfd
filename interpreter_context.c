@@ -4,6 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+INTER_ERROR_TYPE interpreter_error;
+const char *interpreter_error_str[] =
+{
+	"No instruction set loaded",
+	"The loop depth limit was reached",
+	"Missing bracket"
+};
+
 inter_ctx *
 create_inter_ctx(size_t tape_size)
 {
@@ -31,8 +39,8 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 {
 	if (instr == NULL)
 	{
-		printf("No instruction set is loaded\n");
-		return INTER_ERROR;
+		interpreter_error = INTER_NO_INSTRUCTION_SET;
+		return INTER_STATE_ERROR;
 	}
 
 	int ch = instr->text[instr->index];
@@ -56,12 +64,15 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 		case ',':
 			printf("(%ld)>", inter->tape_i);
 			int ch = getchar();
-			if (ch == EOF) // Exit if ctrl+d
-				exit(EXIT_SUCCESS); // TODO: fix this
+			// TODO: handle this in a smarter way
+			if (ch == '\n')
+				return INTER_STATE_EOI;
+
 			inter->tape[inter->tape_i] = ch;
 
+			// flush stdin
 			int garbage;
-			while ( (garbage = getchar()) != '\n' && garbage != EOF); // flush stdin
+			while ( (garbage = getchar()) != '\n' && garbage != EOF);
 			break;
 		case '[':
 			if (inter->tape[inter->tape_i] == 0)
@@ -78,34 +89,30 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 
 					instr->index++;
 				} while (loop_depth > 0);
-				return INTER_SUCCESS;
+				return INTER_STATE_SUCCESS;
 			}
 
+			// Check if the stack is full
+			if (inter->lstack_i >= LOOP_LIMIT)
+			{
+				interpreter_error = INTER_LOOP_LIMIT_REACHED;
+				return INTER_STATE_ERROR;
+			}
 			// Push the stack
 			inter->lstack[inter->lstack_i++] = instr->index;
-			if (inter->lstack_i > LOOP_LIMIT)
-			{
-				// TODO: handle this
-				printf("too many loops\n");
-				exit(EXIT_FAILURE);
-				return INTER_ERROR;
-			}
 			break;
 		case ']':
 			if (inter->lstack_i == 0)
 			{
-				// TODO: handle this
-				printf("you fucked up\n");
-				printf("Fix your brackets\n");
-				exit(EXIT_FAILURE);
-				return INTER_ERROR;
+				interpreter_error = INTER_MISSING_BRACKET;
+				return INTER_STATE_ERROR;
 			}
 
 			// Pop the stack
 			instr->index = inter->lstack[--inter->lstack_i];
-			return INTER_SUCCESS;
+			return INTER_STATE_SUCCESS;
 		case '#':
-			return INTER_BREAKPOINT;
+			return INTER_STATE_BREAKPOINT;
 			break;
 	}
 
@@ -113,8 +120,8 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 	seek_valid_bf_character(instr);
 
 	if (instr->index >= instr->filesize) // TODO: Test this
-		return INTER_END_OF_INSTRUCTIONS; // TODO: handle end of instructions e.g: detect loop errors
-	return INTER_SUCCESS;
+		return INTER_STATE_EOI; // TODO: handle end of instructions e.g: detect loop errors
+	return INTER_STATE_SUCCESS;
 }
 void show_inter_ctx_memory(inter_ctx *inter)
 {
