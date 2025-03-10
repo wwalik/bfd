@@ -6,12 +6,31 @@
 #include "interpreter_context.h"
 #include "get_line.inc"
 
-static inline
+static
 void
-handle_inter_ctx_error()
+handle_inter_ctx_error(inter_ctx *inter, instr_set *instr)
 {
+
 	const char *msg = interpreter_error_str[interpreter_error];
 	printf("Interpreter error: %s\n", msg);
+
+	const int line_index = find_line_of_index(instr, instr->index);
+	printf("Error at character %ld, on line %d\n", instr->index, line_index);
+
+   /* * * * * * * * * * * * * * * * * * * * * * *
+	* Display the erronous character in context *
+	* * * * * * * * * * * * * * * * * * * * * * */
+	static const size_t ctx_offset = 4;
+
+	// Print up to the character
+	
+	// Print the character
+	
+	// Print after the character
+
+	for (int i = 0; i < ctx_offset; i++)
+		putchar(' ');
+	puts("^here");
 }
 
 #define PROMPT ">>"
@@ -77,7 +96,7 @@ main(int argc, char *argv[])
 					seek_valid_bf_character(instr);
 					break;
 				case INTER_STATE_ERROR:
-					handle_inter_ctx_error();
+					handle_inter_ctx_error(inter, instr);
 					break;
 				case INTER_STATE_EOI:
 					break;

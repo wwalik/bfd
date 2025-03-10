@@ -78,7 +78,21 @@ seek_valid_bf_character(instr_set *instr)
 		instr->index++;
 	}
 }
-void show_instruction_set(instr_set *instr)
+int
+find_line_of_index(instr_set *instr, size_t index)
+{
+	if (index >= instr->filesize)
+		return -1; // TODO: ummmmm how
+
+	int n_lines = 1;
+	for (int i = 0; i < index; i++)
+		if (instr->text[i] == '\n')
+			n_lines++;
+
+	return n_lines;
+}
+void
+show_instruction_set(instr_set *instr)
 {
 	if (instr == NULL)
 	{
