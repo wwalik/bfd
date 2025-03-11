@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-INTER_ERROR_TYPE interpreter_error;
+inter_ctx_err_t interpreter_error;
 const char *interpreter_error_str[] =
 {
 	"No instruction set loaded",
@@ -12,17 +12,17 @@ const char *interpreter_error_str[] =
 	"Missing bracket"
 };
 
-inter_ctx *
+inter_ctx_t *
 create_inter_ctx(size_t tape_size)
 {
-	inter_ctx *inter = malloc( sizeof(inter_ctx) + (sizeof(TAPE_TYPE) * tape_size));
+	inter_ctx_t *inter = malloc( sizeof(inter_ctx_t) + (sizeof(tape_cell_t) * tape_size));
 	if (inter == NULL)
 	{
 		perror("inter malloc()");
 		return NULL;
 	}
 
-	*inter = (inter_ctx)
+	*inter = (inter_ctx_t)
 	{
 		.lstack_i = 0,
 
@@ -34,8 +34,8 @@ create_inter_ctx(size_t tape_size)
 
 	return inter;
 }
-INTER_CTX_STATE
-step_inter_ctx(inter_ctx *inter, instr_set *instr)
+inter_ctx_state_t
+step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 {
 	if (instr == NULL)
 	{
@@ -123,7 +123,7 @@ step_inter_ctx(inter_ctx *inter, instr_set *instr)
 		return INTER_STATE_EOI; // TODO: handle end of instructions e.g: detect loop errors
 	return INTER_STATE_SUCCESS;
 }
-void show_inter_ctx_memory(inter_ctx *inter)
+void show_inter_ctx_memory(inter_ctx_t *inter)
 {
 	for (int i = 0; i < inter->tape_size; i++)
 	{
@@ -137,21 +137,21 @@ void show_inter_ctx_memory(inter_ctx *inter)
 	}
 }
 void
-destroy_inter_ctx(inter_ctx *inter)
+destroy_inter_ctx(inter_ctx_t *inter)
 {
 	free(inter);
 	inter = NULL;
 }
 void
-serialize_inter_ctx(inter_ctx *inter, FILE *fp)
+serialize_inter_ctx(inter_ctx_t *inter, FILE *fp)
 {
-	const size_t size = sizeof(inter_ctx) + sizeof(TAPE_TYPE) * inter->tape_size;
+	const size_t size = sizeof(inter_ctx_t) + sizeof(tape_cell_t) * inter->tape_size;
 	const size_t bytes_read =
 		fwrite(inter, size, 1, fp);
 	if (bytes_read < size)
 		perror("Serializing");
 }
-inter_ctx *
+inter_ctx_t *
 unserialize_inter_ctx(FILE *fp)
 {
 	// This is so crude and probably dangerous LMAO
@@ -161,7 +161,7 @@ unserialize_inter_ctx(FILE *fp)
 	if (filesize <= 0)
 		return NULL;
 
-	inter_ctx *inter = malloc(filesize);
+	inter_ctx_t *inter = malloc(filesize);
 	const size_t bytes_read =
 		fread(inter, 1, filesize, fp);
 	if (bytes_read != filesize)

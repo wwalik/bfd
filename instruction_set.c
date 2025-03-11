@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-instr_set *
+instr_set_t *
 create_instr_set(const char *filename)
 {
 	FILE *fp = fopen(filename, "r");
@@ -17,13 +17,13 @@ create_instr_set(const char *filename)
 	size_t filesize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	instr_set *instr = malloc(sizeof(instr_set) + filesize);
+	instr_set_t *instr = malloc(sizeof(instr_set_t) + filesize);
 	if (instr == NULL)
 	{
 		perror("instr_set malloc()");
 		return NULL;
 	}
-	*instr = (instr_set)
+	*instr = (instr_set_t)
 	{
 		.index = 0,
 		.filesize = filesize
@@ -66,7 +66,7 @@ static const char valid_brainfuck_characters[] =
 '#',
 };
 void
-seek_valid_bf_character(instr_set *instr)
+seek_valid_bf_character(instr_set_t *instr)
 {
 	while (instr->index < instr->filesize)
 	{
@@ -79,7 +79,7 @@ seek_valid_bf_character(instr_set *instr)
 	}
 }
 int
-find_line_of_index(instr_set *instr, size_t index)
+find_line_of_index(instr_set_t *instr, size_t index)
 {
 	if (index >= instr->filesize)
 		return -1; // TODO: ummmmm how
@@ -92,7 +92,7 @@ find_line_of_index(instr_set *instr, size_t index)
 	return n_lines;
 }
 void
-show_instruction_set(instr_set *instr)
+show_instruction_set(instr_set_t *instr)
 {
 	if (instr == NULL)
 	{
@@ -110,7 +110,7 @@ show_instruction_set(instr_set *instr)
 	}
 }
 void
-destroy_instr_set(instr_set *instr)
+destroy_instr_set(instr_set_t *instr)
 {
 	free(instr);
 	instr = NULL;

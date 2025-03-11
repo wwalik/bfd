@@ -8,7 +8,7 @@
 
 static
 void
-handle_inter_ctx_error(inter_ctx *inter, instr_set *instr)
+handle_inter_ctx_error(inter_ctx_t *inter, instr_set_t *instr)
 {
 
 	const char *msg = interpreter_error_str[interpreter_error];
@@ -17,20 +17,10 @@ handle_inter_ctx_error(inter_ctx *inter, instr_set *instr)
 	const int line_index = find_line_of_index(instr, instr->index);
 	printf("Error at character %ld, on line %d\n", instr->index, line_index);
 
+	// TODO
    /* * * * * * * * * * * * * * * * * * * * * * *
 	* Display the erronous character in context *
 	* * * * * * * * * * * * * * * * * * * * * * */
-	static const size_t ctx_offset = 4;
-
-	// Print up to the character
-	
-	// Print the character
-	
-	// Print after the character
-
-	for (int i = 0; i < ctx_offset; i++)
-		putchar(' ');
-	puts("^here");
 }
 
 #define PROMPT ">>"
@@ -39,8 +29,8 @@ handle_inter_ctx_error(inter_ctx *inter, instr_set *instr)
 int
 main(int argc, char *argv[])
 {
-	inter_ctx *inter = create_inter_ctx(256);
-	instr_set *instr = NULL;
+	inter_ctx_t *inter = create_inter_ctx(256);
+	instr_set_t *instr = NULL;
 	if (argc == 2)
 	{
 		instr = create_instr_set(argv[1]);
@@ -67,7 +57,7 @@ main(int argc, char *argv[])
 			char *filename = strtok(NULL, DELIM);
 			if (filename == NULL) continue;
 
-			instr_set *old_instr = instr;
+			instr_set_t *old_instr = instr;
 			instr = create_instr_set(filename);
 			if (instr == NULL)
 				instr = old_instr;
@@ -86,7 +76,7 @@ main(int argc, char *argv[])
 		}
 		if (strcmp(command, "run") == 0)
 		{
-			INTER_CTX_STATE inter_state;
+			inter_ctx_state_t inter_state;
 			while ( (inter_state = step_inter_ctx(inter, instr)) == INTER_STATE_SUCCESS);
 			switch (inter_state)
 			{
@@ -119,7 +109,7 @@ main(int argc, char *argv[])
 			if (fp == NULL)
 				perror("save");
 
-			fwrite(inter, sizeof(inter_ctx) + sizeof(TAPE_TYPE) * inter->tape_size, 1, fp);
+			fwrite(inter, sizeof(inter_ctx_t) + sizeof(tape_cell_t) * inter->tape_size, 1, fp);
 
 			fclose(fp);
 		}
@@ -132,7 +122,7 @@ main(int argc, char *argv[])
 			if (fp == NULL)
 				perror("load");
 
-			inter_ctx *old_inter = inter;
+			inter_ctx_t *old_inter = inter;
 			inter = unserialize_inter_ctx(fp);
 			if (inter == NULL)
 			{
