@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <signal.h>
+
 #include "instruction_set.h"
 #include "interpreter_context.h"
 #include "get_line.inc"
@@ -12,27 +14,22 @@ void
 print_instr_set_index_in_context(instr_set_t *instr)
 {
 	static const int max_n_lines = 2;
-	static const int max_n_chars = 30;
 	static const int tab_width = 4;
-
 
 	// seek back until we've went over more lines or characters than the maximum specified
 	size_t pos = instr->index;
-	for (int n_lines = 0,
-			n_chars = 0;
-			pos >= 0 &&
-			n_chars < max_n_chars &&
+	for (int n_lines = 0;
+			pos > 0 &&
 			n_lines < max_n_lines;
 			pos--)
 	{
 		if (instr->text[pos] == '\n')
 			n_lines++;
-		n_chars++;
 	}
 
 	// Print up to and including the character
 	int chars_on_line = 0; 
-	while (pos < instr->index || instr->text[pos] != '\n')
+	while (pos < instr->index || instr->text[pos] != '\n') // Get to the end of the line on which the instr->index stands
 	{
 		/* If the character is \t we'll handle it ourselves 
 		to make sure its width is what we expect */
@@ -49,7 +46,7 @@ print_instr_set_index_in_context(instr_set_t *instr)
 		// Count the number of characters on the current line
 		if (instr->text[pos] == '\n')
 			chars_on_line = 0;
-		else
+		else if (pos < instr->index)
 			chars_on_line++;
 
 		putchar(instr->text[pos]);
@@ -187,6 +184,10 @@ main(int argc, char *argv[])
 				destroy_inter_ctx(old_inter);
 
 			fclose(fp);
+		}
+		if (strcmp(command, "trap") == 0)
+		{
+			raise(SIGTRAP);
 		}
 
 	} while (bytes_read > 0);

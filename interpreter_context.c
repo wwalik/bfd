@@ -19,6 +19,9 @@ get_inter_ctx_err_str(inter_ctx_err_t err)
 		case INTER_ERR_MISSING_BRACKET:
 			return "Missing bracket";
 	}
+
+	// We shouldnt ever get here but compiler is dumb
+	return "How did we get here: error str";
 }
 
 inter_ctx_t *
@@ -99,6 +102,11 @@ step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 						loop_depth--;
 
 					instr->index++;
+					if (instr->index >= LOOP_LIMIT)
+					{
+						interpreter_error = INTER_ERR_LOOP_LIMIT_REACHED;
+						return INTER_STATE_ERROR;
+					}
 				} while (loop_depth > 0);
 				return INTER_STATE_SUCCESS;
 			}
