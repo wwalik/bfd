@@ -4,13 +4,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-inter_ctx_err_t interpreter_error;
-const char *interpreter_error_str[] =
+inter_ctx_err_t interpreter_error; // TODO: This should not be a global
+const char *
+get_inter_ctx_err_str(inter_ctx_err_t err)
 {
-	"No instruction set loaded",
-	"The loop depth limit was reached",
-	"Missing bracket"
-};
+	switch (err)
+	{
+		case INTER_ERR_NO_ERROR:
+			return "No interpreter error";
+		case INTER_ERR_NO_INSTRUCTION_SET:
+			return "No instruction set loaded";
+		case INTER_ERR_LOOP_LIMIT_REACHED:
+			return "The loop depth limit was reached";
+		case INTER_ERR_MISSING_BRACKET:
+			return "Missing bracket";
+	}
+}
 
 inter_ctx_t *
 create_inter_ctx(size_t tape_size)
@@ -39,7 +48,7 @@ step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 {
 	if (instr == NULL)
 	{
-		interpreter_error = INTER_NO_INSTRUCTION_SET;
+		interpreter_error = INTER_ERR_NO_INSTRUCTION_SET;
 		return INTER_STATE_ERROR;
 	}
 
@@ -54,9 +63,11 @@ step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 			break;
 		case '>':
 			inter->tape_i++;
+			inter->tape_i %= inter->tape_size; // This works because tape_cell_t is unsigned and should always be
 			break;
 		case '<':
 			inter->tape_i--;
+			inter->tape_i %= inter->tape_size; // This works because tape_cell_t is unsigned and should always be
 			break;
 		case '.':
 			putchar(inter->tape[inter->tape_i]);
@@ -95,7 +106,7 @@ step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 			// Check if the stack is full
 			if (inter->lstack_i >= LOOP_LIMIT)
 			{
-				interpreter_error = INTER_LOOP_LIMIT_REACHED;
+				interpreter_error = INTER_ERR_LOOP_LIMIT_REACHED;
 				return INTER_STATE_ERROR;
 			}
 			// Push the stack
@@ -104,7 +115,7 @@ step_inter_ctx(inter_ctx_t *inter, instr_set_t *instr)
 		case ']':
 			if (inter->lstack_i == 0)
 			{
-				interpreter_error = INTER_MISSING_BRACKET;
+				interpreter_error = INTER_ERR_MISSING_BRACKET;
 				return INTER_STATE_ERROR;
 			}
 

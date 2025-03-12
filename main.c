@@ -6,21 +6,76 @@
 #include "interpreter_context.h"
 #include "get_line.inc"
 
+// God forbid me from writing text formatting code ever again
+static
+void
+print_instr_set_index_in_context(instr_set_t *instr)
+{
+	static const int max_n_lines = 2;
+	static const int max_n_chars = 30;
+	static const int tab_width = 4;
+
+
+	// seek back until we've went over more lines or characters than the maximum specified
+	size_t pos = instr->index;
+	for (int n_lines = 0,
+			n_chars = 0;
+			pos >= 0 &&
+			n_chars < max_n_chars &&
+			n_lines < max_n_lines;
+			pos--)
+	{
+		if (instr->text[pos] == '\n')
+			n_lines++;
+		n_chars++;
+	}
+
+	// Print up to and including the character
+	int chars_on_line = 0; 
+	while (pos < instr->index || instr->text[pos] != '\n')
+	{
+		/* If the character is \t we'll handle it ourselves 
+		to make sure its width is what we expect */
+		if (instr->text[pos] == '\t')
+		{
+
+			chars_on_line += tab_width;
+			for (int i = 0; i < tab_width; i++)
+				putchar(' ');
+			pos++;
+			continue;
+		}
+
+		// Count the number of characters on the current line
+		if (instr->text[pos] == '\n')
+			chars_on_line = 0;
+		else
+			chars_on_line++;
+
+		putchar(instr->text[pos]);
+		pos++;
+	}
+	putchar('\n');
+
+	// Point to the exact character
+	while (--chars_on_line)
+	{
+		putchar(' ');
+	}
+	puts("^here");
+}
 static
 void
 handle_inter_ctx_error(inter_ctx_t *inter, instr_set_t *instr)
 {
 
-	const char *msg = interpreter_error_str[interpreter_error];
+	const char *msg = get_inter_ctx_err_str(interpreter_error);
 	printf("Interpreter error: %s\n", msg);
 
 	const int line_index = find_line_of_index(instr, instr->index);
-	printf("Error at character %ld, on line %d\n", instr->index, line_index);
+	printf("Error at character %ld, which is on line %d\n", instr->index, line_index);
 
-	// TODO
-   /* * * * * * * * * * * * * * * * * * * * * * *
-	* Display the erronous character in context *
-	* * * * * * * * * * * * * * * * * * * * * * */
+	print_instr_set_index_in_context(instr);
 }
 
 #define PROMPT ">>"
