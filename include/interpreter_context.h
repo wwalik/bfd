@@ -7,7 +7,7 @@
 #include "instruction_set.h"
 
 
-#define LOOP_LIMIT 4
+#define LOOP_LIMIT 32
 typedef uint8_t tape_cell_t;
 typedef struct
 {

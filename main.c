@@ -70,7 +70,7 @@ handle_inter_ctx_error(inter_ctx_t *inter, instr_set_t *instr)
 	printf("Interpreter error: %s\n", msg);
 
 	const int line_index = find_line_of_index(instr, instr->index);
-	printf("Error at character %ld, which is on line %d\n", instr->index, line_index);
+	printf("Error at character %ld, which is on line %d\n", instr->index, line_index+1);
 
 	print_instr_set_index_in_context(instr);
 }
